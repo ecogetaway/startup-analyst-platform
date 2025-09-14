@@ -83,11 +83,6 @@ cd ..
 
 ## 📚 **Documentation**
 
-### 🎓 **Comprehensive Tutorials**
-
-- **[Google ADK & Vertex AI Tutorial](documentation/AGENTIC_AI_TUTORIAL_COMPLETE.md)** - Complete beginner's guide to agentic AI development
-- **[OpenAI Agents SDK Tutorial](documentation/OPENAI_AGENTS_SDK_TUTORIAL_COMPLETE.md)** - Alternative framework comparison
-
 ### 📖 **Technical Documentation**
 
 - **[Quick Setup Guide](documentation/QUICK_SETUP_GUIDE.md)** - Get started in 5 minutes
@@ -225,7 +220,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Google Cloud** - For providing the comprehensive AI platform
 - **VenturusAI** - For design inspiration
-- **OpenAI** - For alternative AI framework comparison
 - **React Community** - For the excellent frontend framework
 
 ## 📞 **Support**
