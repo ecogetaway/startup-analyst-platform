@@ -1,0 +1,121 @@
+🚀 VERTEX AI AGENT SYSTEM ARCHITECTURE
+=====================================
+
+┌─────────────────────────────────────────────────────────────┐
+│                    STARTUP ANALYST PLATFORM                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │   Data      │  │  Business   │  │    Risk     │        │
+│  │ Collection  │  │  Analysis   │  │ Assessment  │        │
+│  │   Agent     │  │   Agent     │  │   Agent     │        │
+│  │             │  │             │  │             │        │
+│  │ • Validates │  │ • Analyzes  │  │ • Identifies│        │
+│  │   data      │  │   business  │  │   risks     │        │
+│  │ • Checks    │  │   model     │  │ • Evaluates │        │
+│  │   quality   │  │ • Market    │  │   impact    │        │
+│  │ • Suggests  │  │   analysis  │  │ • Suggests  │        │
+│  │   research  │  │ • Revenue   │  │   mitigation│        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+│                                                             │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
+│  │ Investment  │  │   Report    │  │             │        │
+│  │  Insights   │  │ Generation  │  │ Orchestrator│        │
+│  │   Agent     │  │   Agent     │  │   (ADK)     │        │
+│  │             │  │             │  │             │        │
+│  │ • Makes     │  │ • Combines  │  │ • Coordinates│        │
+│  │   investment│  │   all       │  │   all agents│        │
+│  │   decisions │  │   analysis  │  │ • Manages   │        │
+│  │ • Provides  │  │ • Creates   │  │   workflow  │        │
+│  │   confidence│  │   reports   │  │ • Handles   │        │
+│  │   scores    │  │ • Formats   │  │   errors    │        │
+│  └─────────────┘  └─────────────┘  └─────────────┘        │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│              VERTEX AI (Google's AI Platform)              │
+│              • Gemini 1.5 Flash Model                      │
+│              • Professional AI Agents                      │
+│              • Scalable Infrastructure                      │
+├─────────────────────────────────────────────────────────────┤
+│              FIREBASE (Real-time Database)                 │
+│              • Live Updates                                │
+│              • Data Persistence                            │
+│              • User Management                             │
+├─────────────────────────────────────────────────────────────┤
+│              GOOGLE CLOUD STORAGE                          │
+│              • File Storage                                │
+│              • Data Backup                                 │
+│              • Scalable Storage                            │
+└─────────────────────────────────────────────────────────────┘
+
+🔄 WORKFLOW PROCESS:
+==================
+
+1. STARTUP DATA INPUT
+   ↓
+2. DATA COLLECTION AGENT
+   • Validates data quality
+   • Identifies missing information
+   ↓
+3. BUSINESS ANALYSIS AGENT
+   • Analyzes business model
+   • Evaluates market opportunity
+   ↓
+4. RISK ASSESSMENT AGENT
+   • Identifies potential risks
+   • Evaluates risk levels
+   ↓
+5. INVESTMENT INSIGHTS AGENT
+   • Makes investment recommendation
+   • Provides confidence score
+   ↓
+6. REPORT GENERATION AGENT
+   • Combines all analysis
+   • Creates professional report
+   ↓
+7. FINAL REPORT OUTPUT
+
+ KEY FEATURES:
+==============
+
+✅ Professional AI Agents
+   • Each agent has specific expertise
+   • Uses Google's advanced AI models
+   • Provides investment-grade analysis
+
+✅ Google ADK Orchestration
+   • Coordinates multiple agents
+   • Manages workflow between agents
+   • Handles errors and retries
+
+✅ Real-time Processing
+   • Fast analysis (under 10 seconds)
+   • Live updates via Firebase
+   • Scalable infrastructure
+
+✅ Production Ready
+   • Enterprise-grade architecture
+   • Comprehensive error handling
+   • Professional reporting
+
+ FOR BEGINNERS:
+===============
+
+This system demonstrates:
+• How to build professional AI agents
+• How to use Google's Vertex AI platform
+• How to coordinate multiple AI systems
+• How to create production-ready applications
+
+Each agent is like a specialist consultant:
+• Data Collection = Research Analyst
+• Business Analysis = Business Consultant
+• Risk Assessment = Risk Manager
+• Investment Insights = Investment Advisor
+• Report Generation = Report Writer
+
+The Orchestrator is like a Project Manager:
+• Coordinates all specialists
+• Manages the workflow
+• Ensures quality and completeness
+• Handles any problems that arise

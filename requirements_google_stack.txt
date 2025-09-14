@@ -1,0 +1,51 @@
+# Google Cloud and AI Platform
+google-cloud-aiplatform>=1.38.0
+google-cloud-firestore>=2.11.0
+google-cloud-functions>=1.13.0
+google-cloud-storage>=2.10.0
+google-cloud-run>=0.10.0
+
+# Google ADK (Agent Development Kit)
+google-adk>=1.0.0
+
+# Firebase
+firebase-admin>=6.2.0
+firebase-auth>=0.1.0
+firebase-firestore>=0.1.0
+
+# Google AI SDK and Gemini
+google-generativeai>=0.3.0
+google-ai-generativelanguage>=0.4.0
+google-ai-sdk>=1.0.0
+
+# Vertex AI
+vertexai>=1.38.0
+
+# Frontend and UI
+streamlit>=1.28.0
+plotly>=5.15.0
+altair>=5.0.0
+streamlit-firebase>=0.1.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+python-multipart>=0.0.6
+asyncio>=3.4.3
+
+# Development and Testing
+pytest>=7.4.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Additional Google Cloud Services
+google-cloud-logging>=3.5.0
+google-cloud-monitoring>=2.15.0
+google-cloud-trace>=1.7.0
