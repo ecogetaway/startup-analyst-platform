@@ -1,0 +1,19 @@
+# Security headers for Vercel Pro
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# Cache optimization for static assets
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker caching
+/service-worker.js
+  Cache-Control: no-cache
+
+# API routes cache
+/api/*
+  Cache-Control: no-store

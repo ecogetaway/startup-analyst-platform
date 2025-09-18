@@ -1,0 +1,3 @@
+startup-analyst-platform
+vercel-pro-optimized
+demo-ready

@@ -20,6 +20,13 @@ interface UploadedFile {
 
 const AppModern: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'landing' | 'upload' | 'analysis' | 'progress' | 'results'>('landing');
+  
+  // Vercel Pro analytics and build info
+  const buildInfo = {
+    version: process.env.REACT_APP_VERSION || '2.0.0',
+    buildTime: process.env.REACT_APP_BUILD_TIME,
+    demoMode: process.env.REACT_APP_DEMO_MODE === 'true'
+  };
   const [results, setResults] = useState<AnalysisResultsType | null>(null);
   const [currentStartupId, setCurrentStartupId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -486,6 +493,13 @@ const AppModern: React.FC = () => {
               <ModernResults results={results} onReset={handleReset} />
             </div>
           </main>
+        </div>
+      )}
+      
+      {/* Build Info Footer (Vercel Pro) */}
+      {buildInfo.demoMode && (
+        <div className="fixed bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+          Demo v{buildInfo.version} | Powered by Vercel Pro
         </div>
       )}
     </div>
