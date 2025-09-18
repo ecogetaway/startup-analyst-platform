@@ -8,6 +8,7 @@ export interface StartupInput {
   website?: string;
   pitch_deck_url?: string;
   additional_info?: string;
+  pdf_content?: any; // Extracted PDF content
   uploaded_files?: {
     name: string;
     url: string;
@@ -65,5 +66,6 @@ export interface AnalysisResults {
 export interface ApiResponse<T> {
   status: string;
   results?: T;
+  startup_id?: string;
   timestamp: string;
 }

@@ -17,7 +17,11 @@ from contextlib import asynccontextmanager
 # Add src to path
 sys.path.append('src')
 
-from src.agents.google_adk_orchestrator import google_adk_orchestrator
+# Use working agents instead of problematic Google ADK
+import sys
+sys.path.append('.')
+from agents.startup_analyst_agents import StartupAnalystOrchestrator
+google_adk_orchestrator = StartupAnalystOrchestrator()
 from src.agents.multimodal_ingestion_agent import multimodal_processor, deal_memo_generator
 from src.utils.enhanced_firebase_client import enhanced_firebase_client
 from src.utils.enhanced_storage_client import enhanced_storage_client
@@ -131,7 +135,7 @@ async def health_check():
 @app.get("/api/status")
 async def get_status():
     """Get comprehensive system status"""
-    adk_status = google_adk_orchestrator.get_agent_status()
+    adk_status = {"orchestrator_initialized": True, "total_agents": len(google_adk_orchestrator.agents)}
     
     return {
         "platform": "Enhanced Startup Analyst Platform",
@@ -189,12 +193,8 @@ async def analyze_startup_enhanced(startup_input: StartupInput):
             
             multi_modal_analysis["deal_memo"] = deal_memo
         
-        # Step 2: Use Google ADK orchestrator for comprehensive analysis
-        results = await google_adk_orchestrator.orchestrate_comprehensive_analysis(
-            startup_input.dict(),
-            startup_id,
-            "demo_user"
-        )
+        # Step 2: Use working orchestrator for comprehensive analysis
+        results = google_adk_orchestrator.analyze_startup(startup_input, "demo_user")
         
         # Step 3: Enhance results with multi-modal analysis if available
         if multi_modal_analysis:

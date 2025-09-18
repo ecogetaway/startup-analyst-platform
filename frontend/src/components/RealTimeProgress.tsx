@@ -93,7 +93,7 @@ const RealTimeProgress: React.FC<RealTimeProgressProps> = ({ startupId, onComple
   };
 
   const getAgentStatus = (agentKey: string) => {
-    if (progressData.agents_completed.includes(agentKey)) {
+    if (progressData.agents_completed && progressData.agents_completed.includes(agentKey)) {
       return 'completed';
     } else if (progressData.current_agent === agentKey) {
       return 'in_progress';

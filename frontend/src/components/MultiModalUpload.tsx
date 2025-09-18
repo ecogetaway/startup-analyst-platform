@@ -1,14 +1,16 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { 
   DocumentArrowUpIcon, 
   MicrophoneIcon, 
   VideoCameraIcon,
-  CloudArrowUpIcon, 
+  CloudArrowUpIcon,   
   CheckCircleIcon,
-  ExclamationTriangleIcon 
+  ExclamationTriangleIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 interface UploadedFile {
+  id: string; // Add unique ID
   name: string;
   size: number;
   type: 'document' | 'audio' | 'video';
@@ -16,24 +18,41 @@ interface UploadedFile {
   storage_path?: string;
   timestamp: number;
   processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+  upload_progress?: number; // Add progress tracking
+  error_message?: string; // Add error tracking
 }
 
 interface MultiModalUploadProps {
   onFilesUploaded: (files: UploadedFile[]) => void;
   startupId?: string;
   disabled?: boolean;
+  maxFiles?: number; // Add max files limit
 }
 
 const MultiModalUpload: React.FC<MultiModalUploadProps> = ({ 
   onFilesUploaded, 
   startupId, 
-  disabled = false 
+  disabled = false,
+  maxFiles = 10
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'document' | 'audio' | 'video'>('all');
+  
+  // Add refs for cleanup
+  const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    const controllers = abortControllersRef.current;
+    return () => {
+      controllers.forEach(controller => controller.abort());
+      controllers.clear();
+    };
+  }, []);
 
   const fileTypeConfig = {
     document: {
@@ -68,6 +87,8 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     }
   };
 
+  const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
   const detectFileType = (file: File): 'document' | 'audio' | 'video' => {
     const fileName = file.name.toLowerCase();
     const fileType = file.type.toLowerCase();
@@ -83,6 +104,26 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
   };
 
   const validateFile = (file: File): { valid: boolean; error?: string } => {
+    // Check if file already exists
+    const isDuplicate = uploadedFiles.some(uploaded => 
+      uploaded.name === file.name && uploaded.size === file.size
+    );
+    
+    if (isDuplicate) {
+      return {
+        valid: false,
+        error: `File "${file.name}" has already been uploaded`
+      };
+    }
+
+    // Check max files limit
+    if (uploadedFiles.length >= maxFiles) {
+      return {
+        valid: false,
+        error: `Maximum ${maxFiles} files allowed`
+      };
+    }
+
     const fileType = detectFileType(file);
     const config = fileTypeConfig[fileType];
 
@@ -108,6 +149,108 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     setIsDragging(false);
   }, []);
 
+  const handleMultipleFileUpload = useCallback(async (files: File[]) => {
+    setUploading(true);
+    setUploadError(null);
+
+    // Pre-validate all files
+    const validationResults = files.map(file => ({
+      file,
+      validation: validateFile(file)
+    }));
+
+    const validFiles = validationResults.filter(result => result.validation.valid);
+    const invalidFiles = validationResults.filter(result => !result.validation.valid);
+
+    // Show validation errors
+    if (invalidFiles.length > 0) {
+      const errorMessages = invalidFiles.map(result => 
+        `${result.file.name}: ${result.validation.error}`
+      ).join('\n');
+      setUploadError(`Some files were rejected:\n${errorMessages}`);
+    }
+
+    if (validFiles.length === 0) {
+      setUploading(false);
+      return;
+    }
+
+    // Create pending file entries
+    const pendingFiles: UploadedFile[] = validFiles.map(({ file }) => ({
+      id: generateFileId(),
+      name: file.name,
+      size: file.size,
+      type: detectFileType(file),
+      timestamp: Date.now(),
+      processing_status: 'pending',
+      upload_progress: 0
+    }));
+
+    // Add pending files to state immediately
+    setUploadedFiles(prev => {
+      const newFiles = [...prev, ...pendingFiles];
+      return newFiles;
+    });
+
+    // Upload files
+    const uploadPromises = validFiles.map(({ file }, index) => 
+      handleSingleFileUpload(file, pendingFiles[index].id)
+    );
+    
+    try {
+      const results = await Promise.allSettled(uploadPromises);
+      
+      const successfulUploads = results
+        .filter((result): result is PromiseFulfilledResult<UploadedFile> => result.status === 'fulfilled')
+        .map(result => result.value);
+      
+      const failedUploads = results
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => result.reason);
+
+      // Update state with final results
+      setUploadedFiles(prev => {
+        const updatedFiles = prev.map(file => {
+          const successfulFile = successfulUploads.find(success => success.id === file.id);
+          if (successfulFile) {
+            return successfulFile;
+          }
+          
+          const failedFile = failedUploads.find(error => error.message && error.message.includes(file.name));
+          if (failedFile) {
+            return {
+              ...file,
+              processing_status: 'failed' as const,
+              error_message: failedFile.message
+            };
+          }
+          
+          return file;
+        });
+        
+        // Notify parent of successful uploads only
+        const completedFiles = updatedFiles.filter(f => f.processing_status === 'completed');
+        onFilesUploaded(completedFiles);
+        
+        return updatedFiles;
+      });
+
+      if (failedUploads.length > 0) {
+        const errorSummary = failedUploads.length === 1 
+          ? failedUploads[0].message 
+          : `${failedUploads.length} file(s) failed to upload`;
+        setUploadError(errorSummary);
+      }
+
+    } catch (error) {
+      setUploadError('Upload failed. Please try again.');
+      console.error('Upload error:', error);
+    } finally {
+      setUploading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onFilesUploaded]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
@@ -118,7 +261,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     if (files.length > 0) {
       handleMultipleFileUpload(files);
     }
-  }, [disabled]);
+  }, [disabled, handleMultipleFileUpload]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (disabled) return;
@@ -127,83 +270,100 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     if (files && files.length > 0) {
       handleMultipleFileUpload(Array.from(files));
     }
-  };
-
-  const handleMultipleFileUpload = async (files: File[]) => {
-    setUploading(true);
-    setUploadError(null);
-
-    const uploadPromises = files.map(file => handleSingleFileUpload(file));
     
-    try {
-      const results = await Promise.allSettled(uploadPromises);
-      
-      const successfulUploads = results
-        .filter((result): result is PromiseFulfilledResult<UploadedFile> => result.status === 'fulfilled')
-        .map(result => result.value);
-      
-      const failedUploads = results
-        .filter(result => result.status === 'rejected')
-        .length;
-
-      if (failedUploads > 0) {
-        setUploadError(`${failedUploads} file(s) failed to upload`);
-      }
-
-      if (successfulUploads.length > 0) {
-        setUploadedFiles(prev => [...prev, ...successfulUploads]);
-        onFilesUploaded([...uploadedFiles, ...successfulUploads]);
-      }
-    } catch (error) {
-      setUploadError('Upload failed. Please try again.');
-    } finally {
-      setUploading(false);
+    // Reset input value to allow same file re-selection
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
-  const handleSingleFileUpload = async (file: File): Promise<UploadedFile> => {
-    // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      throw new Error(validation.error);
-    }
-
+  const handleSingleFileUpload = async (file: File, fileId: string): Promise<UploadedFile> => {
     const fileType = detectFileType(file);
+    const abortController = new AbortController();
+    abortControllersRef.current.set(fileId, abortController);
 
     try {
+      // Update status to processing
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, processing_status: 'processing' as const, upload_progress: 10 }
+          : f
+      ));
+
       const formData = new FormData();
       formData.append('file', file);
       if (startupId) {
         formData.append('startup_id', startupId);
       }
 
-      const response = await fetch('/api/upload-file', {
+      const response = await fetch('http://localhost:8080/api/upload-file', {
         method: 'POST',
         body: formData,
+        signal: abortController.signal,
       });
 
+      // Update progress
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, upload_progress: 70 }
+          : f
+      ));
+
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
       }
 
       const result = await response.json();
       
+      // Final progress update
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, upload_progress: 100 }
+          : f
+      ));
+      
       if (result.status === 'success') {
-        return {
+        const uploadedFile: UploadedFile = {
+          id: fileId,
           name: file.name,
           size: result.size || file.size,
           type: fileType,
           public_url: result.public_url,
           storage_path: result.filename,
           timestamp: result.timestamp || Date.now(),
-          processing_status: 'completed'
+          processing_status: 'completed',
+          upload_progress: 100
         };
+        
+        abortControllersRef.current.delete(fileId);
+        return uploadedFile;
       } else {
         throw new Error(result.detail || 'Upload failed');
       }
     } catch (error: any) {
+      abortControllersRef.current.delete(fileId);
+      if (error.name === 'AbortError') {
+        throw new Error('Upload was cancelled');
+      }
       throw new Error(`Failed to upload ${file.name}: ${error.message}`);
     }
+  };
+
+  const removeFile = (fileId: string) => {
+    // Cancel upload if in progress
+    const abortController = abortControllersRef.current.get(fileId);
+    if (abortController) {
+      abortController.abort();
+      abortControllersRef.current.delete(fileId);
+    }
+
+    // Remove from state
+    setUploadedFiles(prev => {
+      const newFiles = prev.filter(f => f.id !== fileId);
+      onFilesUploaded(newFiles.filter(f => f.processing_status === 'completed'));
+      return newFiles;
+    });
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -230,6 +390,8 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     ? uploadedFiles 
     : uploadedFiles.filter(file => file.type === activeTab);
 
+  const canUpload = !disabled && !uploading && uploadedFiles.length < maxFiles;
+
   return (
     <div className="space-y-6">
       {/* Multi-Modal Upload Area */}
@@ -240,21 +402,21 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
             ? 'border-blue-400 bg-blue-50' 
             : 'border-gray-300 hover:border-gray-400'
           }
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          ${uploading ? 'pointer-events-none' : ''}
+          ${!canUpload ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <input
+          ref={fileInputRef}
           type="file"
           accept={Object.values(fileTypeConfig).flatMap(config => 
             [...config.extensions, ...config.mimeTypes]
           ).join(',')}
           onChange={handleFileSelect}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          disabled={disabled || uploading}
+          disabled={!canUpload}
           multiple
           id="multimodal-file-upload"
         />
@@ -276,14 +438,19 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                 <VideoCameraIcon className="h-12 w-12 text-purple-400" />
               </div>
               <p className="text-lg font-medium text-gray-900">
-                Multi-Modal Pitch Upload
+                Pitch Deck Upload
               </p>
               <p className="mt-2 text-sm text-gray-600">
-                <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
+                <span className="font-medium text-blue-600">Click to upload</span> or drag and drop your pitch deck
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Support for documents, audio recordings, and video pitches
+                PDF, PowerPoint, or other presentation formats - Primary source for investment analysis
               </p>
+              {uploadedFiles.length > 0 && (
+                <p className="text-xs text-gray-400 mt-2">
+                  {uploadedFiles.length}/{maxFiles} files uploaded
+                </p>
+              )}
             </>
           )}
         </div>
@@ -328,13 +495,21 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       {/* Upload Error */}
       {uploadError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+          <div className="flex justify-between items-start">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800 whitespace-pre-line">{uploadError}</p>
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{uploadError}</p>
-            </div>
+            <button
+              onClick={() => setUploadError(null)}
+              className="text-red-400 hover:text-red-600"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
@@ -343,9 +518,9 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       {uploadedFiles.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h4 className="text-lg font-medium text-gray-900">Uploaded Pitch Materials</h4>
+            <h4 className="text-lg font-medium text-gray-900">Uploaded Pitch Deck</h4>
             <p className="text-sm text-gray-600 mt-1">
-              {uploadedFiles.length} file(s) ready for multi-modal analysis
+              {uploadedFiles.filter(f => f.processing_status === 'completed').length} of {uploadedFiles.length} file(s) ready for investment analysis
             </p>
           </div>
 
@@ -375,30 +550,66 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
 
           {/* Files List */}
           <div className="px-6 py-4 space-y-3">
-            {filteredFiles.map((file, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                <div className="flex items-center space-x-3">
+            {filteredFiles.map((file) => (
+              <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                <div className="flex items-center space-x-3 flex-1">
                   {getFileIcon(file.type)}
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{file.name}</p>
                     <div className="flex items-center space-x-2 text-xs text-gray-500">
                       <span>{formatFileSize(file.size)}</span>
                       <span>•</span>
                       <span className="capitalize">{file.type}</span>
+                      
+                      {file.processing_status === 'pending' && (
+                        <>
+                          <span>•</span>
+                          <span className="text-yellow-600">Pending...</span>
+                        </>
+                      )}
+                      
+                      {file.processing_status === 'processing' && (
+                        <>
+                          <span>•</span>
+                          <span className="text-blue-600">Uploading {file.upload_progress}%</span>
+                        </>
+                      )}
+                      
                       {file.processing_status === 'completed' && (
                         <>
                           <span>•</span>
                           <span className="text-green-600 flex items-center">
                             <CheckCircleIcon className="h-3 w-3 mr-1" />
-                            Processed
+                            Ready
                           </span>
                         </>
                       )}
+                      
+                      {file.processing_status === 'failed' && (
+                        <>
+                          <span>•</span>
+                          <span className="text-red-600">Failed</span>
+                        </>
+                      )}
                     </div>
+                    
+                    {file.processing_status === 'processing' && file.upload_progress !== undefined && (
+                      <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                        <div 
+                          className="bg-blue-600 h-1 rounded-full transition-all duration-300" 
+                          style={{ width: `${file.upload_progress}%` }}
+                        ></div>
+                      </div>
+                    )}
+                    
+                    {file.error_message && (
+                      <p className="text-xs text-red-600 mt-1">{file.error_message}</p>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {file.public_url && (
+                
+                <div className="flex items-center space-x-2 ml-4">
+                  {file.public_url && file.processing_status === 'completed' && (
                     <a
                       href={file.public_url}
                       target="_blank"
@@ -408,6 +619,13 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                       View
                     </a>
                   )}
+                  <button
+                    onClick={() => removeFile(file.id)}
+                    className="text-gray-400 hover:text-red-600 transition-colors"
+                    title="Remove file"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -417,14 +635,18 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
 
       {/* Multi-Modal Processing Info */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-blue-900 mb-2">🚀 Advanced Multi-Modal Analysis</h4>
+        <h4 className="text-sm font-medium text-blue-900 mb-2">🎯 Pitch Deck Investment Analysis</h4>
         <ul className="text-xs text-blue-800 space-y-1">
-          <li>• <strong>Documents:</strong> Extract structured content, financial data, and key metrics</li>
-          <li>• <strong>Audio:</strong> Speech-to-text, presentation quality, and message clarity analysis</li>
-          <li>• <strong>Video:</strong> Visual presentation analysis, speaker assessment, and content quality</li>
-          <li>• <strong>AI Integration:</strong> Gemini AI synthesizes insights across all formats</li>
-          <li>• <strong>Deal Memo:</strong> Generate professional investment memos automatically</li>
+          <li>• <strong>Business Model Analysis:</strong> Revenue streams, market positioning, and competitive advantage</li>
+          <li>• <strong>Market Opportunity:</strong> TAM/SAM analysis, market size, and growth potential</li>
+          <li>• <strong>Financial Projections:</strong> Revenue forecasts, burn rate, and funding requirements</li>
+          <li>• <strong>Team Assessment:</strong> Founder backgrounds, advisory board, and execution capability</li>
+          <li>• <strong>Risk Assessment:</strong> Market risks, technical risks, and competitive threats</li>
+          <li>• <strong>Investment Recommendation:</strong> INVEST/WATCH/PASS decision with confidence score</li>
         </ul>
+        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+          <strong>Investment Focus:</strong> AI analyzes your pitch deck using standard VC evaluation frameworks - the same criteria professional investors use to make funding decisions.
+        </div>
       </div>
     </div>
   );

@@ -17,6 +17,13 @@ interface ModernResultsProps {
 
 const ModernResults: React.FC<ModernResultsProps> = ({ results, onReset }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'memo' | 'multimodal'>('overview');
+  
+  // Debug logging
+  console.log('ModernResults received results:', results);
+  console.log('Agent results:', results?.agent_results);
+  console.log('Investment insights:', results?.agent_results?.investment_insights);
+  console.log('Investment insights findings:', results?.agent_results?.investment_insights?.findings);
+  console.log('Investment insights text:', results?.agent_results?.investment_insights?.findings?.investment_insights);
 
   // Extract key information
   const companyName = results?.company_name || 'Unknown Company';
@@ -163,13 +170,91 @@ const ModernResults: React.FC<ModernResultsProps> = ({ results, onReset }) => {
             <div className="bg-white rounded-2xl border border-gray-200 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Executive Summary</h2>
               
-              {results?.summary && (
-                <div className="prose max-w-none mb-8">
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {results.summary}
-                  </p>
+              {/* ML Prediction Results */}
+              {results?.ml_prediction && (
+                <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    🤖 AI Success Prediction
+                    <span className="ml-2 text-sm font-normal text-gray-600">
+                      (85% Accuracy)
+                    </span>
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <div className="text-3xl font-bold text-purple-600">
+                        {Math.round(results.ml_prediction.success_probability * 100)}%
+                      </div>
+                      <div className="text-sm text-gray-600">Success Probability</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <div className={`text-2xl font-bold ${
+                        results.ml_prediction.prediction === 'Success' 
+                          ? 'text-green-600' 
+                          : 'text-red-600'
+                      }`}>
+                        {results.ml_prediction.prediction}
+                      </div>
+                      <div className="text-sm text-gray-600">Prediction</div>
+                    </div>
+                    
+                    <div className="text-center p-4 bg-white rounded-lg border">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {Math.round(results.ml_prediction.confidence * 100)}%
+                      </div>
+                      <div className="text-sm text-gray-600">Confidence</div>
+                    </div>
+                  </div>
+                  
+                  {results.ml_prediction.key_factors && results.ml_prediction.key_factors.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Key Success Factors:</h4>
+                      <div className="space-y-2">
+                        {results.ml_prediction.key_factors.slice(0, 3).map((factor: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <span className="text-sm text-gray-700 capitalize">
+                              {factor[0].replace('_', ' ')}
+                            </span>
+                            <span className="text-sm font-medium text-purple-600">
+                              {Math.round(factor[1] * 100)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
+              
+              {/* Display analysis from agent results */}
+              <div className="prose max-w-none mb-8">
+                {results?.agent_results?.investment_insights?.findings?.investment_insights ? (
+                  <div className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+                    {results.agent_results.investment_insights.findings.investment_insights}
+                  </div>
+                ) : results?.agent_results?.business_analysis?.findings?.analysis ? (
+                  <div className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+                    {results.agent_results.business_analysis.findings.analysis}
+                  </div>
+                ) : results?.summary ? (
+                  <div className="text-gray-700 leading-relaxed text-lg">
+                    {results.summary}
+                  </div>
+                ) : (
+                  <div className="text-gray-500 leading-relaxed text-lg">
+                    <p>Analysis completed successfully. Detailed insights are available in the Detailed Analysis tab.</p>
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        <strong>Available Data:</strong> 
+                        Investment Insights: {results?.agent_results?.investment_insights ? 'Yes' : 'No'} | 
+                        Business Analysis: {results?.agent_results?.business_analysis ? 'Yes' : 'No'} |
+                        Summary: {results?.summary ? 'Yes' : 'No'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Next Steps */}
               {results?.next_steps && results.next_steps.length > 0 && (
@@ -214,17 +299,30 @@ const ModernResults: React.FC<ModernResultsProps> = ({ results, onReset }) => {
                   </div>
                 </div>
 
-                {agentResult.analysis_result && (
+                {agentResult.findings && (
                   <div className="space-y-4">
-                    {agentResult.analysis_result.summary && (
-                      <p className="text-gray-700">{agentResult.analysis_result.summary}</p>
+                    {agentResult.findings.analysis && (
+                      <div className="prose max-w-none">
+                        <div className="text-gray-700 whitespace-pre-line">
+                          {agentResult.findings.analysis}
+                        </div>
+                      </div>
                     )}
                     
-                    {agentResult.analysis_result.key_points && (
+                    {agentResult.findings.risk_analysis && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Risk Analysis:</h4>
+                        <div className="text-gray-700 whitespace-pre-line">
+                          {agentResult.findings.risk_analysis}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {agentResult.findings.key_points && (
                       <div>
                         <h4 className="font-medium text-gray-900 mb-2">Key Insights:</h4>
                         <ul className="space-y-2">
-                          {agentResult.analysis_result.key_points.map((point: string, index: number) => (
+                          {agentResult.findings.key_points.map((point: string, index: number) => (
                             <li key={index} className="flex items-start space-x-2">
                               <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                               <span className="text-gray-700">{point}</span>

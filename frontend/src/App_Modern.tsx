@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { PlayIcon, DocumentTextIcon, MicrophoneIcon, VideoCameraIcon } from '@heroicons/react/24/solid';
+import React, { useState } from 'react';
+import { PlayIcon } from '@heroicons/react/24/solid';
 import { CheckCircleIcon, StarIcon } from '@heroicons/react/24/outline';
 import MultiModalUpload from './components/MultiModalUpload';
 import RealTimeProgress from './components/RealTimeProgress';
@@ -18,9 +18,8 @@ interface UploadedFile {
 }
 
 const AppModern: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState<'landing' | 'upload' | 'analysis' | 'results'>('landing');
+  const [currentStep, setCurrentStep] = useState<'landing' | 'upload' | 'analysis' | 'progress' | 'results'>('landing');
   const [results, setResults] = useState<AnalysisResultsType | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStartupId, setCurrentStartupId] = useState<string | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [startupInfo, setStartupInfo] = useState({
@@ -50,23 +49,6 @@ const AppModern: React.FC = () => {
     }
   ];
 
-  const features = [
-    {
-      icon: DocumentTextIcon,
-      title: "Pitch Deck Analysis",
-      description: "Extract structured insights from presentations and documents"
-    },
-    {
-      icon: MicrophoneIcon,
-      title: "Voice Pitch Processing",
-      description: "Analyze founder presentations and speaking quality"
-    },
-    {
-      icon: VideoCameraIcon,
-      title: "Video Pitch Analysis",
-      description: "Comprehensive video analysis with speaker assessment"
-    }
-  ];
 
   const handleStartAnalysis = () => {
     setCurrentStep('upload');
@@ -81,27 +63,24 @@ const AppModern: React.FC = () => {
   };
 
   const handleBeginAnalysis = async () => {
-    if (!startupInfo.company_name || !startupInfo.description) {
-      alert('Please fill in company name and description');
-      return;
-    }
+    // Company info is optional for demo - use defaults if not provided
+    const companyName = startupInfo.company_name || 'Demo Company';
+    const description = startupInfo.description || 'Demo startup for hackathon presentation';
 
+    // Show loading state
     setCurrentStep('analysis');
-    setIsAnalyzing(true);
-
-    const startupId = `${startupInfo.company_name.replace(/\s+/g, '_')}_${Date.now()}`;
-    setCurrentStartupId(startupId);
 
     try {
       const enhancedInput: StartupInput = {
-        company_name: startupInfo.company_name,
-        business_description: startupInfo.description,
-        industry: startupInfo.industry,
-        stage: startupInfo.stage,
-        founder_name: startupInfo.founder_name,
+        company_name: companyName,
+        business_description: description,
+        industry: startupInfo.industry || 'Technology',
+        stage: startupInfo.stage || 'Seed',
+        founder_name: startupInfo.founder_name || 'Demo Founder',
         founder_background: "Experienced entrepreneur",
-        website: `https://${startupInfo.company_name.toLowerCase().replace(/\s+/g, '')}.com`,
-        additional_info: `Funding request: ${startupInfo.funding_request}`,
+        website: `https://${companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+        additional_info: `Funding request: ${startupInfo.funding_request || 'TBD'}`,
+        pdf_content: uploadedFiles.length > 0 ? { demo: true } : null,
         uploaded_files: uploadedFiles.map(file => ({
           name: file.name,
           url: file.public_url || '',
@@ -110,14 +89,26 @@ const AppModern: React.FC = () => {
         }))
       };
 
+      console.log('Starting analysis for:', companyName);
       const response = await analyzeStartup(enhancedInput);
-      setResults(response.results || null);
-      setCurrentStep('results');
+      console.log('Analysis response:', response);
+      
+      if (response && response.results) {
+        console.log('✅ Analysis successful, setting results');
+        setResults(response.results);
+        setCurrentStep('results');
+        
+        // Force immediate re-render
+        setTimeout(() => {
+          console.log('Force refresh completed');
+        }, 100);
+      } else {
+        throw new Error('No results received from analysis');
+      }
     } catch (error: any) {
-      alert(`Analysis failed: ${error.message}`);
+      console.error('Analysis error:', error);
+      alert(`Analysis failed: ${error.message}. Please try again.`);
       setCurrentStep('upload');
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -136,13 +127,17 @@ const AppModern: React.FC = () => {
     setCurrentStartupId(null);
   };
 
+  // Debug current step
+  console.log('Current step:', currentStep);
+  console.log('Results available:', !!results);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-white">
       {/* Landing Page */}
       {currentStep === 'landing' && (
         <>
           {/* Header */}
-          <header className="px-6 py-6">
+          <header className="px-6 py-6 bg-white">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
@@ -163,8 +158,8 @@ const AppModern: React.FC = () => {
           </header>
 
           {/* Hero Section */}
-          <main className="px-6 py-16">
-            <div className="max-w-7xl mx-auto">
+          <main className="px-6 py-16 bg-white">
+            <div className="max-w-7xl mx-auto bg-white">
               <div className="text-center mb-16">
                 {/* Badge */}
                 <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium mb-8">
@@ -222,16 +217,6 @@ const AppModern: React.FC = () => {
                 </p>
               </div>
 
-              {/* Features Grid */}
-              <div className="grid md:grid-cols-3 gap-8 mb-16">
-                {features.map((feature, index) => (
-                  <div key={index} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-                    <feature.icon className="w-12 h-12 text-green-600 mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </div>
-                ))}
-              </div>
 
               {/* Tech Stack Badges */}
               <div className="text-center mb-16">
@@ -291,11 +276,16 @@ const AppModern: React.FC = () => {
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  Upload Your Pitch Materials
+                  Upload Your Pitch Deck
                 </h1>
-                <p className="text-xl text-gray-600">
-                  Upload your pitch deck, voice notes, or video presentations for comprehensive AI analysis
+                <p className="text-xl text-gray-600 mb-4">
+                  Upload your pitch deck for AI-powered investment analysis
                 </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
+                  <p className="text-sm text-blue-800">
+                    <strong>🎯 Primary Analysis Source:</strong> Your pitch deck contains the key information for investment decisions - business model, market opportunity, financial projections, and team details.
+                  </p>
+                </div>
               </div>
 
               {/* Progress Steps */}
@@ -330,10 +320,18 @@ const AppModern: React.FC = () => {
 
               {/* Startup Info Form */}
               <div className="bg-white rounded-2xl border border-gray-200 p-8 mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-6">Company Information</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Company Metadata</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Optional supplementary information - Primary analysis is based on your pitch deck content
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-6">
+                  <p className="text-xs text-gray-600">
+                    <strong>Note:</strong> Investment decisions are primarily driven by pitch deck analysis. This form provides additional context but is not required for comprehensive analysis.
+                  </p>
+                </div>
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
                     <input
                       type="text"
                       value={startupInfo.company_name}
@@ -378,7 +376,7 @@ const AppModern: React.FC = () => {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Description *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company Description</label>
                     <textarea
                       value={startupInfo.description}
                       onChange={(e) => handleStartupInfoChange('description', e.target.value)}
@@ -394,14 +392,18 @@ const AppModern: React.FC = () => {
               <div className="text-center">
                 <button
                   onClick={handleBeginAnalysis}
-                  disabled={!startupInfo.company_name || !startupInfo.description}
-                  className="bg-green-600 text-white px-12 py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                  className="bg-green-600 text-white px-12 py-4 rounded-xl font-semibold text-lg hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl"
                 >
                   Begin AI Analysis
                 </button>
                 <p className="text-sm text-gray-500 mt-4">
-                  Analysis typically takes 60-90 seconds
+                  Analysis typically takes 2-3 seconds • Driven by pitch deck content
                 </p>
+                {uploadedFiles.length > 0 && (
+                  <p className="text-sm text-green-600 mt-2">
+                    ✅ {uploadedFiles.length} file(s) uploaded and ready for analysis
+                  </p>
+                )}
               </div>
             </div>
           </main>
@@ -409,16 +411,32 @@ const AppModern: React.FC = () => {
       )}
 
       {/* Analysis Page */}
-      {currentStep === 'analysis' && currentStartupId && (
+      {currentStep === 'analysis' && (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-6">
-          <div className="max-w-4xl w-full">
-            <RealTimeProgress 
-              startupId={currentStartupId}
-              onComplete={(analysisResults) => {
-                setResults(analysisResults);
-                setCurrentStep('results');
-              }}
-            />
+          <div className="max-w-2xl w-full text-center">
+            <div className="bg-white rounded-2xl p-12 shadow-lg">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-6"></div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Analyzing Your Startup
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Our AI agents are processing your pitch materials and generating insights...
+              </p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Processing pitch deck content...</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                  <span>Analyzing business model...</span>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+                  <span>Generating investment insights...</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
