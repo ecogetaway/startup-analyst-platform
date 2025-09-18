@@ -283,7 +283,7 @@ const ModernResults: React.FC<ModernResultsProps> = ({ results, onReset }) => {
               <div key={agentType} className="bg-white rounded-2xl border border-gray-200 p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {agentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Agent
+                    {agentResult.agent_name || agentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) + ' Agent'}
                   </h3>
                   <div className="flex items-center space-x-4">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -329,6 +329,72 @@ const ModernResults: React.FC<ModernResultsProps> = ({ results, onReset }) => {
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+
+                    {/* Scheduling & Interview Agent specific content */}
+                    {agentType === 'scheduling_interview' && agentResult.findings && (
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                        <h4 className="font-medium text-purple-900 mb-3 flex items-center">
+                          <ClockIcon className="w-5 h-5 mr-2" />
+                          Post-Analysis Interview System
+                        </h4>
+                        
+                        <div className="space-y-3 text-sm">
+                          <div className="bg-white rounded p-3 border-l-4 border-purple-400">
+                            <p className="font-medium text-purple-900">Purpose:</p>
+                            <p className="text-gray-700">{agentResult.findings.interview_purpose}</p>
+                          </div>
+                          
+                          <div>
+                            <p><strong>Status:</strong> {agentResult.findings.scheduling_status}</p>
+                            <p><strong>Workflow Stage:</strong> {agentResult.findings.workflow_stage?.replace('_', ' ').toUpperCase()}</p>
+                          </div>
+
+                          {agentResult.findings.interview_capabilities && (
+                            <div>
+                              <p className="font-medium text-purple-900 mb-2">Production Capabilities:</p>
+                              <ul className="space-y-1 ml-4">
+                                {agentResult.findings.interview_capabilities.slice(0, 4).map((capability: string, index: number) => (
+                                  <li key={index} className="text-gray-700 text-xs">• {capability}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {agentResult.findings.typical_questions && (
+                            <div>
+                              <p className="font-medium text-purple-900 mb-2">Example Interview Topics:</p>
+                              <div className="grid grid-cols-2 gap-1 text-xs">
+                                {agentResult.findings.typical_questions.slice(0, 4).map((question: string, index: number) => (
+                                  <div key={index} className="text-gray-600">• {question}</div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-purple-700 transition-colors">
+                            📞 Request Founder Interview
+                          </button>
+
+                          {agentResult.findings.demo_note && (
+                            <p className="text-purple-700 italic text-xs mt-2 p-2 bg-purple-100 rounded">
+                              💡 {agentResult.findings.demo_note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Investment insights specific content */}
+                    {agentResult.findings.investment_insights && (
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Investment Analysis:</h4>
+                        <div className="prose max-w-none">
+                          <div className="text-gray-700 whitespace-pre-line">
+                            {agentResult.findings.investment_insights}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

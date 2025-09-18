@@ -10,7 +10,7 @@ import { StartupInput, AnalysisResults as AnalysisResultsType } from './types';
 interface UploadedFile {
   name: string;
   size: number;
-  type: 'document' | 'audio' | 'video';
+  type: 'document' | 'audio' | 'video' | 'questionnaire';
   public_url?: string;
   storage_path?: string;
   timestamp: number;
@@ -422,18 +422,31 @@ const AppModern: React.FC = () => {
               <p className="text-gray-600 mb-6">
                 Our AI agents are processing your pitch materials and generating insights...
               </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Processing pitch deck content...</span>
+              <div className="space-y-3 text-sm text-gray-600">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">Data Extraction Agent</span>
+                  <span className="text-gray-500">Processing pitch deck content...</span>
                 </div>
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                  <span>Analyzing business model...</span>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <span className="font-medium">Business Analysis & Mapping Agent</span>
+                  <span className="text-gray-500">Evaluating business model...</span>
                 </div>
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
-                  <span>Generating investment insights...</span>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" style={{animationDelay: '0.8s'}}></div>
+                  <span className="font-medium">Risk Assessment Agent</span>
+                  <span className="text-gray-500">Analyzing potential risks...</span>
+                </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '1.2s'}}></div>
+                  <span className="font-medium">Scheduling & Interview Agent</span>
+                  <span className="text-gray-500">Preparing post-analysis interview system...</span>
+                </div>
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-3 h-3 bg-indigo-500 rounded-full animate-pulse" style={{animationDelay: '1.6s'}}></div>
+                  <span className="font-medium">Refinement & Investment Insights Agent</span>
+                  <span className="text-gray-500">Generating final recommendations...</span>
                 </div>
               </div>
             </div>

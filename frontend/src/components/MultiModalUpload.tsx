@@ -6,14 +6,15 @@ import {
   CloudArrowUpIcon,   
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  XMarkIcon
+  XMarkIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
 interface UploadedFile {
   id: string; // Add unique ID
   name: string;
   size: number;
-  type: 'document' | 'audio' | 'video';
+  type: 'document' | 'audio' | 'video' | 'questionnaire';
   public_url?: string;
   storage_path?: string;
   timestamp: number;
@@ -39,7 +40,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'document' | 'audio' | 'video'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'document' | 'audio' | 'video' | 'questionnaire'>('all');
   
   // Add refs for cleanup
   const abortControllersRef = useRef<Map<string, AbortController>>(new Map());
@@ -65,7 +66,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       label: 'Pitch Decks & Documents',
       description: 'PDF, PowerPoint, Word documents',
       color: 'blue',
-      maxSize: 25 * 1024 * 1024 // 25MB
+      maxSize: 100 * 1024 * 1024 // 100MB
     },
     audio: {
       extensions: ['.mp3', '.wav', '.m4a', '.aac', '.flac', '.ogg'],
@@ -74,7 +75,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       label: 'Voice Notes & Pitches',
       description: 'MP3, WAV, M4A audio files',
       color: 'green',
-      maxSize: 50 * 1024 * 1024 // 50MB
+      maxSize: 100 * 1024 * 1024 // 100MB
     },
     video: {
       extensions: ['.mp4', '.mov', '.avi', '.mkv', '.webm'],
@@ -83,20 +84,29 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       label: 'Video Pitches',
       description: 'MP4, MOV, AVI video files',
       color: 'purple',
-      maxSize: 100 * 1024 * 1024 // 100MB
+      maxSize: 250 * 1024 * 1024 // 250MB
+    },
+    questionnaire: {
+      extensions: ['.json', '.csv', '.xlsx'],
+      mimeTypes: ['application/json', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+      icon: ClipboardDocumentListIcon,
+      label: 'Google Form Questionnaires',
+      description: 'JSON, CSV, Excel exports',
+      color: 'teal',
+      maxSize: 10 * 1024 * 1024 // 10MB
     }
   };
 
   const generateFileId = () => `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-  const detectFileType = (file: File): 'document' | 'audio' | 'video' => {
+  const detectFileType = (file: File): 'document' | 'audio' | 'video' | 'questionnaire' => {
     const fileName = file.name.toLowerCase();
     const fileType = file.type.toLowerCase();
 
     for (const [type, config] of Object.entries(fileTypeConfig)) {
       if (config.extensions.some(ext => fileName.endsWith(ext)) ||
           config.mimeTypes.includes(fileType)) {
-        return type as 'document' | 'audio' | 'video';
+        return type as 'document' | 'audio' | 'video' | 'questionnaire';
       }
     }
     
@@ -374,13 +384,14 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const getFileIcon = (type: 'document' | 'audio' | 'video') => {
+  const getFileIcon = (type: 'document' | 'audio' | 'video' | 'questionnaire') => {
     const config = fileTypeConfig[type];
     const IconComponent = config.icon;
     const colorClass = {
       blue: 'text-blue-500',
       green: 'text-green-500',
-      purple: 'text-purple-500'
+      purple: 'text-purple-500',
+      teal: 'text-teal-500'
     }[config.color];
     
     return <IconComponent className={`h-5 w-5 ${colorClass}`} />;
@@ -436,6 +447,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                 <DocumentArrowUpIcon className="h-12 w-12 text-blue-400" />
                 <MicrophoneIcon className="h-12 w-12 text-green-400" />
                 <VideoCameraIcon className="h-12 w-12 text-purple-400" />
+                <ClipboardDocumentListIcon className="h-12 w-12 text-teal-400" />
               </div>
               <p className="text-lg font-medium text-gray-900">
                 Pitch Deck Upload
@@ -444,7 +456,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                 <span className="font-medium text-blue-600">Click to upload</span> or drag and drop your pitch deck
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                PDF, PowerPoint, or other presentation formats - Primary source for investment analysis
+                PDF, PowerPoint, audio, video, or Google Form questionnaires - Primary source for investment analysis
               </p>
               {uploadedFiles.length > 0 && (
                 <p className="text-xs text-gray-400 mt-2">
@@ -457,18 +469,20 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       </div>
 
       {/* File Type Information */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Object.entries(fileTypeConfig).map(([type, config]) => {
           const IconComponent = config.icon;
           const bgColorClass = {
             blue: 'bg-blue-50 border-blue-200',
             green: 'bg-green-50 border-green-200',
-            purple: 'bg-purple-50 border-purple-200'
+            purple: 'bg-purple-50 border-purple-200',
+            teal: 'bg-teal-50 border-teal-200'
           }[config.color];
           const textColorClass = {
             blue: 'text-blue-800',
             green: 'text-green-800',
-            purple: 'text-purple-800'
+            purple: 'text-purple-800',
+            teal: 'text-teal-800'
           }[config.color];
 
           return (
@@ -527,7 +541,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
           {/* File Type Tabs */}
           <div className="px-6 pt-4">
             <div className="flex space-x-1">
-              {['all', 'document', 'audio', 'video'].map((tab) => (
+              {['all', 'document', 'audio', 'video', 'questionnaire'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as typeof activeTab)}
@@ -537,7 +551,9 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {tab === 'all' ? 'All Files' : `${tab.charAt(0).toUpperCase() + tab.slice(1)}s`}
+                  {tab === 'all' ? 'All Files' : 
+                   tab === 'questionnaire' ? 'Questionnaires' :
+                   `${tab.charAt(0).toUpperCase() + tab.slice(1)}s`}
                   {tab !== 'all' && (
                     <span className="ml-1 text-xs">
                       ({uploadedFiles.filter(f => f.type === tab).length})
@@ -635,17 +651,17 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
 
       {/* Multi-Modal Processing Info */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-blue-900 mb-2">🎯 Pitch Deck Investment Analysis</h4>
+        <h4 className="text-sm font-medium text-blue-900 mb-2">🎯 Multi-Modal Investment Analysis</h4>
         <ul className="text-xs text-blue-800 space-y-1">
-          <li>• <strong>Business Model Analysis:</strong> Revenue streams, market positioning, and competitive advantage</li>
-          <li>• <strong>Market Opportunity:</strong> TAM/SAM analysis, market size, and growth potential</li>
-          <li>• <strong>Financial Projections:</strong> Revenue forecasts, burn rate, and funding requirements</li>
-          <li>• <strong>Team Assessment:</strong> Founder backgrounds, advisory board, and execution capability</li>
-          <li>• <strong>Risk Assessment:</strong> Market risks, technical risks, and competitive threats</li>
+          <li>• <strong>Pitch Decks (PDF/PPT):</strong> Business model, market analysis, financial projections</li>
+          <li>• <strong>Audio Pitches:</strong> Presentation quality, message clarity, founder confidence</li>
+          <li>• <strong>Video Presentations:</strong> Visual aids, speaker assessment, content delivery</li>
+          <li>• <strong>Google Form Questionnaires:</strong> Structured founder responses and data collection</li>
+          <li>• <strong>AI Integration:</strong> Synthesizes insights across all formats for comprehensive analysis</li>
           <li>• <strong>Investment Recommendation:</strong> INVEST/WATCH/PASS decision with confidence score</li>
         </ul>
         <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-          <strong>Investment Focus:</strong> AI analyzes your pitch deck using standard VC evaluation frameworks - the same criteria professional investors use to make funding decisions.
+          <strong>Investment Focus:</strong> AI analyzes all submission formats using standard VC evaluation frameworks. Google Form questionnaires provide structured founder input for enhanced analysis.
         </div>
       </div>
     </div>

@@ -63,11 +63,11 @@ class BaseAnalystAgent:
         """Base analysis method to be overridden"""
         raise NotImplementedError("Subclasses must implement analyze method")
 
-class DataCollectionAgent(BaseAnalystAgent):
-    """Agent responsible for collecting and synthesizing data"""
+class DataExtractionAgent(BaseAnalystAgent):
+    """Agent responsible for extracting and structuring pitch deck content"""
     
     def __init__(self):
-        super().__init__("Data Collection Agent")
+        super().__init__("Data Extraction Agent")
     
     def analyze(self, startup_data: StartupData, context: Dict = None) -> AnalysisResult:
         """Collect and synthesize startup data"""
@@ -128,11 +128,11 @@ class DataCollectionAgent(BaseAnalystAgent):
         except:
             return {"raw_analysis": response_text, "parsed": False}
 
-class BusinessAnalysisAgent(BaseAnalystAgent):
-    """Agent for analyzing business model and strategy"""
+class BusinessAnalysisAndMappingAgent(BaseAnalystAgent):
+    """Agent for analyzing business model and mapping evaluation parameters"""
     
     def __init__(self):
-        super().__init__("Business Analysis Agent")
+        super().__init__("Business Analysis & Mapping Agent")
     
     def analyze(self, startup_data: StartupData, context: Dict = None) -> AnalysisResult:
         """Analyze business model and strategy"""
@@ -274,11 +274,58 @@ class RiskAssessmentAgent(BaseAnalystAgent):
         matches = re.findall(strategy_pattern, text, re.IGNORECASE)
         return matches[:5]
 
-class InvestmentInsightsAgent(BaseAnalystAgent):
-    """Agent for generating investment insights and recommendations"""
+class SchedulingAndInterviewAgent(BaseAnalystAgent):
+    """Agent for post-analysis founder interviews when investors need additional details"""
     
     def __init__(self):
-        super().__init__("Investment Insights Agent")
+        super().__init__("Scheduling & Interview Agent")
+    
+    def analyze(self, startup_data: StartupData, context: Dict = None) -> AnalysisResult:
+        """Post-analysis interview scheduling and automated founder interviews"""
+        
+        # Mock functionality showing post-analysis interview workflow
+        mock_findings = {
+            "workflow_stage": "post_analysis_followup",
+            "interview_purpose": "Investor requires additional details beyond initial analysis",
+            "scheduling_status": "Ready to schedule when requested",
+            "interview_capabilities": [
+                "Automated founder interview scheduling",
+                "AI-powered question generation based on analysis gaps",
+                "Real-time interview conduct via video/audio",
+                "Structured data extraction from founder responses",
+                "Follow-up question generation",
+                "Integration with investment decision workflow"
+            ],
+            "typical_questions": [
+                "Financial projections deep-dive",
+                "Team expansion plans",
+                "Technology roadmap details", 
+                "Market penetration strategy",
+                "Competitive positioning clarification",
+                "Partnership and customer acquisition details"
+            ],
+            "production_features": {
+                "calendar_integration": "Automatic scheduling with founder availability",
+                "ai_interviewer": "Contextual questions based on initial analysis",
+                "real_time_transcription": "Live note-taking and summary generation",
+                "investor_dashboard": "Real-time interview insights for investment team"
+            },
+            "demo_note": "This agent activates when investors need clarification post-analysis - Production version will conduct live AI interviews"
+        }
+        
+        return AnalysisResult(
+            agent_name=self.agent_name,
+            analysis_type="scheduling_interview",
+            findings=mock_findings,
+            confidence_score=0.75,  # Lower confidence since it's placeholder
+            timestamp=datetime.now()
+        )
+
+class RefinementAndInvestmentInsightsAgent(BaseAnalystAgent):
+    """Agent for refining analysis and generating final investment insights and memos"""
+    
+    def __init__(self):
+        super().__init__("Refinement & Investment Insights Agent")
     
     def analyze(self, startup_data: StartupData, context: Dict = None) -> AnalysisResult:
         """Generate investment insights and recommendations"""
@@ -363,10 +410,11 @@ class StartupAnalystOrchestrator:
     
     def __init__(self):
         self.agents = {
-            "data_collection": DataCollectionAgent(),
-            "business_analysis": BusinessAnalysisAgent(),
+            "data_collection": DataExtractionAgent(),
+            "business_analysis": BusinessAnalysisAndMappingAgent(),
             "risk_assessment": RiskAssessmentAgent(),
-            "investment_insights": InvestmentInsightsAgent()
+            "scheduling_interview": SchedulingAndInterviewAgent(),
+            "investment_insights": RefinementAndInvestmentInsightsAgent()
         }
         self.analysis_results = {}
     

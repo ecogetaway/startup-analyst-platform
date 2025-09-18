@@ -188,13 +188,30 @@ async def analyze_startup(startup_input: StartupInput):
             "processing_time": 2.0,
             "has_pitch_materials": has_pitch_deck,
             "analysis_source": analysis_source,
-            "agents_used": ["business_analysis", "risk_assessment", "investment_insights"],
+            "agents_used": ["data_extraction", "business_analysis", "risk_assessment", "scheduling_interview", "refinement_insights"],
             "analysis_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             
             # Simplified agent results
             "agent_results": {
+                "data_extraction": {
+                    "agent_name": "Data Extraction Agent",
+                    "analysis_type": "data_extraction",
+                    "findings": {
+                        "extraction_source": "pitch_deck" if has_pitch_deck else "company_metadata",
+                        "content_processed": f"Successfully extracted key information from {startup_input.company_name} submission",
+                        "data_quality": "High" if has_pitch_deck else "Standard",
+                        "structured_data": {
+                            "company_overview": True,
+                            "financial_data": "Extracted" if has_pitch_deck else "Limited",
+                            "market_analysis": True,
+                            "team_information": True
+                        }
+                    },
+                    "confidence_score": 0.90 if has_pitch_deck else 0.75,
+                    "timestamp": datetime.now().isoformat()
+                },
                 "business_analysis": {
-                    "agent_name": "Business Analysis Agent",
+                    "agent_name": "Business Analysis & Mapping Agent",
                     "analysis_type": "business_analysis",
                     "findings": {
                         "analysis": f"Based on {'pitch deck analysis' if has_pitch_deck else 'company metadata'}: {template['summary']}",
@@ -214,8 +231,32 @@ async def analyze_startup(startup_input: StartupInput):
                     "confidence_score": 0.85,
                     "timestamp": datetime.now().isoformat()
                 },
+                "scheduling_interview": {
+                    "agent_name": "Scheduling & Interview Agent",
+                    "analysis_type": "scheduling_interview",
+                    "findings": {
+                        "workflow_stage": "post_analysis_followup",
+                        "interview_purpose": "Investor requires additional details beyond initial analysis",
+                        "scheduling_status": "Ready to schedule when requested",
+                        "interview_capabilities": [
+                            "Automated founder interview scheduling",
+                            "AI-powered question generation based on analysis gaps",
+                            "Real-time interview conduct via video/audio",
+                            "Structured data extraction from founder responses"
+                        ],
+                        "typical_questions": [
+                            "Financial projections deep-dive",
+                            "Team expansion plans", 
+                            "Technology roadmap details",
+                            "Market penetration strategy"
+                        ],
+                        "demo_note": "This agent activates when investors need clarification post-analysis - Production version will conduct live AI interviews"
+                    },
+                    "confidence_score": 0.80,
+                    "timestamp": datetime.now().isoformat()
+                },
                 "investment_insights": {
-                    "agent_name": "Investment Insights Agent",
+                    "agent_name": "Refinement & Investment Insights Agent",
                     "analysis_type": "investment_insights", 
                     "findings": {
                         "investment_insights": f"Investment Recommendation: {template['recommendation']}\n\nAnalysis Source: {'Comprehensive pitch deck review' if has_pitch_deck else 'Company metadata analysis'}\n\nRationale: {template['summary']}\n\nKey Investment Highlights:\n" + "\n".join([f"• {point}" for point in template['key_strengths']]),
