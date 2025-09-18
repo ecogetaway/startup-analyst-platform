@@ -58,14 +58,11 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
 
   const fileTypeConfig = {
     document: {
-      extensions: ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.txt'],
-      mimeTypes: ['application/pdf', 'application/vnd.ms-powerpoint', 
-                  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                  'text/plain'],
+      extensions: ['.pdf'],
+      mimeTypes: ['application/pdf'],
       icon: DocumentArrowUpIcon,
-      label: 'Pitch Decks & Documents',
-      description: 'PDF, PowerPoint, Word documents',
+      label: 'Presentation Decks (PDF)',
+      description: 'PDF presentation decks',
       color: 'blue',
       maxSize: 100 * 1024 * 1024 // 100MB
     },
@@ -448,7 +445,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
                 <span className="font-medium text-blue-600">Click to upload</span> or drag and drop your pitch deck
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                PDF, PowerPoint, audio, video, or Google Form questionnaires - Primary source for investment analysis
+                PDF presentation decks, audio, video, or Google Form questionnaires - Primary source for investment analysis
               </p>
               {uploadedFiles.length > 0 && (
                 <p className="text-xs text-gray-400 mt-2">
@@ -645,7 +642,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
         <h4 className="text-sm font-medium text-blue-900 mb-2">🎯 Multi-Modal Investment Analysis</h4>
         <ul className="text-xs text-blue-800 space-y-1">
-          <li>• <strong>Pitch Decks (PDF/PPT):</strong> Business model, market analysis, financial projections</li>
+          <li>• <strong>PDF Presentation Decks:</strong> Business model, market analysis, financial projections</li>
           <li>• <strong>Audio Pitches:</strong> Presentation quality, message clarity, founder confidence</li>
           <li>• <strong>Video Presentations:</strong> Visual aids, speaker assessment, content delivery</li>
           <li>• <strong>Google Form Questionnaires:</strong> Structured founder responses and data collection</li>
