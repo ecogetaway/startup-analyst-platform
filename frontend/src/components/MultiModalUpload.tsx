@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { uploadFileDemo } from '../services/demoApi';
 import { 
   DocumentArrowUpIcon, 
   MicrophoneIcon, 
@@ -300,31 +301,22 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
           : f
       ));
 
-      const formData = new FormData();
-      formData.append('file', file);
-      if (startupId) {
-        formData.append('startup_id', startupId);
-      }
+      // Update progress to 50%
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, upload_progress: 50 }
+          : f
+      ));
 
-      const response = await fetch('http://localhost:8080/api/upload-file', {
-        method: 'POST',
-        body: formData,
-        signal: abortController.signal,
-      });
+      // Use demo API for Vercel deployment
+      const result = await uploadFileDemo(file);
 
-      // Update progress
+      // Update progress to 70%
       setUploadedFiles(prev => prev.map(f => 
         f.id === fileId 
           ? { ...f, upload_progress: 70 }
           : f
       ));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${response.status} ${errorText}`);
-      }
-
-      const result = await response.json();
       
       // Final progress update
       setUploadedFiles(prev => prev.map(f => 
@@ -349,7 +341,7 @@ const MultiModalUpload: React.FC<MultiModalUploadProps> = ({
         abortControllersRef.current.delete(fileId);
         return uploadedFile;
       } else {
-        throw new Error(result.detail || 'Upload failed');
+        throw new Error('Upload failed');
       }
     } catch (error: any) {
       abortControllersRef.current.delete(fileId);

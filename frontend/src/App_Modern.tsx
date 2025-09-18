@@ -5,6 +5,7 @@ import MultiModalUpload from './components/MultiModalUpload';
 import RealTimeProgress from './components/RealTimeProgress';
 import ModernResults from './components/ModernResults';
 import { analyzeStartup } from './services/api';
+import { analyzeStartupDemo, uploadFileDemo } from './services/demoApi';
 import { StartupInput, AnalysisResults as AnalysisResultsType } from './types';
 
 interface UploadedFile {
@@ -90,7 +91,8 @@ const AppModern: React.FC = () => {
       };
 
       console.log('Starting analysis for:', companyName);
-      const response = await analyzeStartup(enhancedInput);
+      // Use demo API for Vercel deployment
+      const response = { results: await analyzeStartupDemo(enhancedInput) };
       console.log('Analysis response:', response);
       
       if (response && response.results) {
