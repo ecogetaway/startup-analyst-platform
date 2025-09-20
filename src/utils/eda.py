@@ -1,4 +1,13 @@
 # utils/eda.py
+# 
+# Based on Smart Report Analyzer by Sreeja Bethu
+# Original: https://github.com/SreejaBethu/Smart-Report-Analyzer
+# License: MIT License
+# 
+# Modifications:
+# - Integrated into startup analysis workflow
+# - Enhanced visualizations for investment analysis
+# - Added financial metrics visualization
 
 import pandas as pd
 import plotly.express as px

@@ -1,4 +1,13 @@
 # utils/llm_agent.py
+# 
+# Based on Smart Report Analyzer by Sreeja Bethu
+# Original: https://github.com/SreejaBethu/Smart-Report-Analyzer
+# License: MIT License
+# 
+# Modifications:
+# - Integrated into startup analysis pipeline
+# - Enhanced for pitch deck analysis
+# - Added production error handling
 
 import os
 import pandas as pd

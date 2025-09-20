@@ -1,4 +1,13 @@
 # utils/file_handler.py
+# 
+# Based on Smart Report Analyzer by Sreeja Bethu
+# Original: https://github.com/SreejaBethu/Smart-Report-Analyzer
+# License: MIT License
+# 
+# Modifications:
+# - Adapted for FastAPI file handling
+# - Enhanced for startup pitch deck processing
+# - Added additional file type support
 
 import pandas as pd
 import pdfplumber
