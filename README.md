@@ -10,7 +10,9 @@ An intelligent platform that analyzes startup pitch decks using multi-agent AI s
 
 ---
 
-## 🎯 **Hackathon Demo Overview**
+## 🎯 **Demo Overview**
+**Note **
+Demo has only pre-loaded analysis and comments and as of now doesnot have the capability to generate prediction based on ML models 
 
 **Problem**: VCs spend hours analyzing pitch decks and struggle with consistent evaluation frameworks across deals.
 
@@ -44,7 +46,59 @@ An intelligent platform that analyzes startup pitch decks using multi-agent AI s
 - **Risk Matrices**: Structured risk assessment frameworks
 - **Confidence Scoring**: Data-driven confidence levels
 
+---# 🚧 **In Development - Future Features**
+
+### 🎬 **Multi-Modal Processing** (Phase 2)
+- 🚧 **Audio Pitch Analysis** - Speech-to-text and voice analysis
+- 🚧 **Video Presentation Processing** - Visual and audio content analysis
+- 🚧 **Multiple File Format Support** - PowerPoint, Word, images
+- 🚧 **Content Synthesis** - Cross-format analysis correlation
+- 🚧 **Presenter Assessment** - Body language and delivery analysis
+
+### 🤖 **Advanced AI Agents** (Phase 2)
+- 🚧 **Data Collection Agent** - Public data synthesis and research
+- 🚧 **Business Analysis Agent** - Deep business model evaluation
+- 🚧 **Risk Assessment Agent** - Comprehensive risk analysis
+- 🚧 **Report Generation Agent** - PDF report generation
+- 🚧 **Investment Insights Agent** - Advanced recommendation engine
+
+### 📊 **Enhanced Analytics** (Phase 3)
+- 🚧 **Market Research Integration** - Live market data analysis
+- 🚧 **Competitor Analysis** - Automated competitive landscape
+- 🚧 **Financial Modeling** - Advanced financial projections
+- 🚧 **Team Background Verification** - LinkedIn/public data integration
+- 🚧 **Industry Benchmarking** - Sector-specific comparisons
+
+### 💡 **Machine Learning Features** (Phase 3)
+- 🚧 **Success Prediction Models** - ML-based outcome prediction
+- 🚧 **Portfolio Optimization** - Investment portfolio analysis
+- 🚧 **Pattern Recognition** - Historical deal pattern analysis
+- 🚧 **Custom Model Training** - Firm-specific analysis models
+- 🚧 **Continuous Learning** - Model improvement over time
+
+### 🔗 **Integration Capabilities** (Phase 4)
+- 🚧 **CRM Integration** - Salesforce, HubSpot connectivity
+- 🚧 **Deal Management Systems** - Workflow integration
+- 🚧 **Email Integration** - Automated report distribution
+- 🚧 **Calendar Integration** - Meeting scheduling automation
+- 🚧 **Slack/Teams Bots** - Chat-based analysis requests
+
+### 🌐 **Enterprise Features** (Phase 4)
+- 🚧 **Multi-tenant Architecture** - Organization-specific instances
+- 🚧 **Role-based Access Control** - User permission management
+- 🚧 **Advanced Security** - Enterprise-grade data protection
+- 🚧 **Custom Branding** - White-label solutions
+- 🚧 **API Access** - Programmatic integration capabilities
+
+### 📈 **Advanced Reporting** (Phase 5)
+- 🚧 **Interactive Dashboards** - Real-time analytics dashboards
+- 🚧 **Trend Analysis** - Investment trend identification
+- 🚧 **Portfolio Tracking** - Investment performance monitoring
+- 🚧 **Custom Report Builder** - Configurable report templates
+- 🚧 **Data Export Options** - Multiple format exports
+
 ---
+
 
 ## 🏗️ **Architecture**
 
